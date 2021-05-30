@@ -1,7 +1,8 @@
 const axios = require('axios')
 
-const ACCESS_KEY = "1737516827:AAG3-3-XcZQNAPvA1XORdTIgDxJlKU6bkZE"
-const CHAT_ID = -515673992;
+
+const ACCESS_KEY = process.env.TELEGRAM_KEY
+const CHAT_ID = process.env.TELEGRAM_CHANNEL_ID 
 
 const DEFAULT_ACCOUNT = {
     id: 0,
@@ -9,6 +10,16 @@ const DEFAULT_ACCOUNT = {
     name: "",
     githubUsername: ""
 }
+
+const ACTION  = {
+    REVIEW_REQUESTED: 'review_requested',
+    SUBMITTED: 'submitted',
+    APPROVED: 'approved',
+    CHANGES_REQUESTED: 'changes_requested',
+    COMMENTED: 'commented',
+    CLOSED: 'closed',
+    REOPENED: 'reopened'
+};
 
 const ACCOUNTS = [
     {
@@ -38,7 +49,7 @@ const ACCOUNTS = [
 ]
 
 const getUserBasedOnGithubUsername = (githubUsername) => {
-    let user =  ACCOUNTS.find(usr => usr.githubUsername == githubUsername)
+    let user =  ACCOUNTS.find(usr => usr.githubUsername === githubUsername)
 
     if (user === undefined){
         return DEFAULT_ACCOUNT
@@ -54,11 +65,11 @@ const getGithubUrl = (escapedURL) => {
 
 const parseWebhookPayload = (payload) => {
     return {
-        assigner: payload.pull_request.user.login || "",
-        PRUrl: getGithubUrl(payload.pull_request.html_url || ""),
+        assigner: payload.sender.login || "",
+        PRUrl: getGithubUrl(payload.sender.html_url || ""),
         action: payload.action || "",
         state: payload.review ? payload.review.state : '',
-        title: payload.pull_request.title || "",
+        title: payload.issue ? payload.issue.title : payload.pull_request ? payload.pull_request.title : "",
         repository: {
             name: payload.repository.name,
             url: payload.repository.url
@@ -87,12 +98,13 @@ const getMessageBasedOnActionType = (actionType) => {
 }
 
 module.exports = (req, res) => {
-    console.log("masuk",req.body)
     const githubData = parseWebhookPayload(req.body);
-    console.log(githubData)
+
+    const assigner = getUserBasedOnGithubUsername(githubData.assigner).name;
+    const MESSAGE =  `${assigner} ${getMessageBasedOnActionType(githubData.action)} untuk *${githubData.title}* di  *${githubData.repository.name}*`;
     axios.post(`https://api.telegram.org/bot${ACCESS_KEY}/sendMessage`, {
         "chat_id": CHAT_ID ,
-        text: 'Flintsxxtone',
+        text: MESSAGE,
         parse_mode: "markdown",
         reply_markup: {
             inline_keyboard: [
@@ -106,10 +118,10 @@ module.exports = (req, res) => {
         }
       })
       .then(function (response) {
-        res.send("sucxßsscess")
+        res.send("success")
       })
       .catch(function (error) {
-        console.log(err);
+        console.log(error, process.env);
         res.send(JSON.stringify({ success: false }));
       });
 }
