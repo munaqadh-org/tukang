@@ -1,0 +1,12 @@
+{
+    "routes": [
+        {
+            "src": "/api/v1/kurir-github",
+            "methods": [
+                "POST",
+                "GET"
+            ],
+            "dest": "/api/github.js"
+        }
+    ]
+}

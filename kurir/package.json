@@ -1,0 +1,13 @@
+{
+  "name": "kurir",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@vercel/node": "^1.11.0"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "twilio": "^3.63.0"
+  }
+}
